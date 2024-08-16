@@ -67,7 +67,7 @@ class Network(object):
             else:
                 print (f"Epoch {j} complete")
 
-    def update_mini_batch(self, mini_batches, eta):
+    def update_mini_batch(self, mini_batch, eta):
         """Update the network's weights and biases by applying
         gradient descent using backpropagation to a single mini batch.
         The ``mini_batch`` is a list of tuples ``(x, y)``, and ``eta``
