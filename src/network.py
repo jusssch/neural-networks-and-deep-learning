@@ -75,7 +75,6 @@ class Network(object):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
         
-        
         x_values = [x for x, _ in mini_batch]
         y_values = [y for _, y in mini_batch]
         
