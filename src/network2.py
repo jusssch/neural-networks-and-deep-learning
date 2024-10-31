@@ -15,7 +15,6 @@ class QuadraticCost(object):
 
     @staticmethod
     def fn(a, y):
-        
         return 0.5*np.linalg.norm(a-y)**2
 
     @staticmethod
@@ -72,6 +71,7 @@ class Network(object):
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
+            no_improvement_in,
             lmbda = 0.0,
             evaluation_data=None,
             monitor_evaluation_cost=False,
@@ -94,6 +94,8 @@ class Network(object):
             for mini_batch in mini_batches:
                 self.update_mini_batch(
                     mini_batch, eta, lmbda, len(training_data))
+            
+            
             print(f"Epoch {j} training complete")
             if monitor_training_cost:
                 cost = self.total_cost(training_data, lmbda)
@@ -113,6 +115,15 @@ class Network(object):
                 evaluation_accuracy.append(accuracy)
                 print("Accuracy on evaluation data: {} / {}".format(
                     self.accuracy(evaluation_data), n_data))
+            
+            if len(evaluation_accuracy) >= no_improvement_in:
+                max_classifying_accuracy = max(evaluation_accuracy)
+                if max_classifying_accuracy in evaluation_accuracy[len(evaluation_accuracy) - no_improvement_in : len(evaluation_accuracy)]:
+                    print(f"Evaluation data improved in the last {no_improvement_in} epochs.")
+                else:
+                    print(f"Stopping Early: No improvement in classification accuracy in the last {no_improvement_in} epochs.")
+                    return
+                    
             
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
