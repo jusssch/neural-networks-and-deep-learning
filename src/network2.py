@@ -71,7 +71,8 @@ class Network(object):
         return a
 
     def SGD(self, training_data, epochs, mini_batch_size, eta,
-            no_improvement_in,
+            no_improvement_in = 10,
+            no_improvement_average = True, # Controls whether the average validation of the last n epochs should be used for early stopping or (False) the max value
             lmbda = 0.0,
             evaluation_data=None,
             monitor_evaluation_cost=False,
@@ -116,14 +117,23 @@ class Network(object):
                 print("Accuracy on evaluation data: {} / {}".format(
                     self.accuracy(evaluation_data), n_data))
             
-            if len(evaluation_accuracy) >= no_improvement_in:
-                max_classifying_accuracy = max(evaluation_accuracy)
-                if max_classifying_accuracy in evaluation_accuracy[len(evaluation_accuracy) - no_improvement_in : len(evaluation_accuracy)]:
-                    print(f"Evaluation data improved in the last {no_improvement_in} epochs.")
+            if len(evaluation_accuracy) - 1 > no_improvement_in:
+                if no_improvement_average:
+                    evaluation_length = len(evaluation_accuracy) - 1 # '-1' because the current epoch should be excluded
+                    recent_accuracies = evaluation_accuracy[evaluation_length - no_improvement_in: evaluation_length] 
+                    average_validation_accuracy = sum(recent_accuracies) / len(recent_accuracies)
+                    if evaluation_accuracy[-1] > average_validation_accuracy:
+                        print(f"Current validation accuracy ({evaluation_accuracy[-1]}) is greater than average in the last {no_improvement_in} epochs ({average_validation_accuracy}).")
+                    else:
+                        print(f"Stopping Early: Current validation accuracy ({evaluation_accuracy[-1]}) < than average last {no_improvement_in} epochs ({average_validation_accuracy}).")
+                        return
                 else:
-                    print(f"Stopping Early: No improvement in classification accuracy in the last {no_improvement_in} epochs.")
-                    return
-                    
+                    max_classifying_accuracy = max(evaluation_accuracy)
+                    if max_classifying_accuracy in evaluation_accuracy[len(evaluation_accuracy) - no_improvement_in : len(evaluation_accuracy)]:
+                        print(f"Evaluation data improved in the last {no_improvement_in} epochs.")
+                    else:
+                        print(f"Stopping Early: No improvement in classification accuracy in the last {no_improvement_in} epochs.")
+                        return
             
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
