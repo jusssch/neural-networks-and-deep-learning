@@ -87,6 +87,9 @@ class Network(object):
         n = len(training_data)
         evaluation_cost, evaluation_accuracy = [], []
         training_cost, training_accuracy = [], []
+        
+        original_eta = eta
+        
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
@@ -117,6 +120,7 @@ class Network(object):
                 print("Accuracy on evaluation data: {} / {}".format(
                     self.accuracy(evaluation_data), n_data))
             
+            
             if len(evaluation_accuracy) - 1 > no_improvement_in:
                 if no_improvement_average:
                     evaluation_length = len(evaluation_accuracy) - 1 # '-1' because the current epoch should be excluded
@@ -134,6 +138,12 @@ class Network(object):
                     else:
                         print(f"Stopping Early: No improvement in classification accuracy in the last {no_improvement_in} epochs.")
                         return
+            
+                # Implementing learning schedule -> if no_improvement_in satisfied 
+                if eta > original_eta/128:
+                    print(f"New learning rate: {eta/2}; prev: {eta}; bigger than {original_eta}/128: {original_eta/128}")
+                    eta = eta / 2
+            
             
         return evaluation_cost, evaluation_accuracy, \
             training_cost, training_accuracy
